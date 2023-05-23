@@ -1,4 +1,5 @@
-resource "google_compute_instance" "vm_instance" {
+// versione singola
+/*resource "google_compute_instance" "vm_instance" {
     for_each = var.vm_instances
         name            = lookup(each.value, "name",each.key)
         machine_type    = lookup(each.value, "machine_type","e2-micro")
@@ -21,7 +22,40 @@ resource "google_compute_instance" "vm_instance" {
                 network_tier            = lookup(each.value.network_interface.access_config, "network_tier", null)
             }
         }
+} */
+
+
+
+
+
+resource "google_compute_instance" "vm_instance" {
+    for_each = var.vm_instances
+        name            = lookup(each.value, "name",each.key)
+        machine_type    = lookup(each.value, "machine_type","e2-micro")
+        #optional
+        zone            = lookup(each.value, "zone",null)
+        tags            = lookup(each.value, "tags",null)
+        boot_disk {
+            initialize_params {
+                image   = lookup(each.value.boot_disk.inizialize_params, "image", "debian-cloud/debian-11")
+            }
+        }
+
+        dynamic network_interface {
+            for_each = {for key, value in each.value.network_interface : key => value if key == "network_interface"}
+            content{
+                subnetwork          = network_interface.value.subnetwork
+                network             = network_interface.value.network
+                subnetwork_project  = network_interface.value.subnetwork_project
+                access_config{
+                    nat_ip                  = lookup(network_interface.value.access_config, "nat_ip", null)
+                    public_ptr_domain_name  = lookup(network_interface.value.access_config, "public_ptr_domain_name", null)
+                    network_tier            = lookup(network_interface.value.access_config, "network_tier", null)
+                }
+            }
+        }
 }
+
 
 resource "google_compute_disk" "default" {
     for_each = {for k in flatten([
