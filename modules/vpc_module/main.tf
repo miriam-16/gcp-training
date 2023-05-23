@@ -8,31 +8,23 @@ resource "google_compute_network" "vpc_network" {
 }
 
 resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" {
-    //TODO: dA QUI
-    /*for_each = { for k in flatten([
+    for_each = { for k in flatten([
         for key, vpc in var.vpc_networks : [
-            for key_sn, subnetwork in vpc.subnetworks : [
-                for key_sec, secondary_ip_range in subnetwork.secondary_ip_range :{
+            for key_sn, subnetwork in vpc.subnetworks : {
                     vpc_key    = key
                     sn_key     = key_sn
-                    sec_key    = key_sec
-                    sec_ip_range = secondary_ip_range
-                }
-            ]
+                    subnetwork = subnetwork
+            }
         ]
-    ]) : "${k.vpc_key}_${k.sn_key}_${k.sec_key}" => k} */
-    name          = lookup(each.value.sn_key, "name","test-subnetwork")
-    ip_cidr_range = lookup(each.value.sn_key,"ip_cidr_range","10.2.0.0/16")
-    region        = lookup(each.value.sn_key, "region","us-central1")
-    network       = google_compute_network.custom-test.id
-    secondary_ip_range {
-        range_name    = lookup(each.value.sec_key, "range_name","tf-test-secondary-range-update1")
-        ip_cidr_range = lookup(each.value.sec_key,"ip_cidr_range","192.168.10.0/24")
-    }
-}
+    ]) : "${k.vpc_key}_${k.sn_key}" => k} 
 
-resource "google_compute_network" "custom-test" {
-    name                    = "test-network"
-    auto_create_subnetworks = false
+    name          = lookup(each.value.subnetwork, "name","test-subnetwork-false")
+    ip_cidr_range = lookup(each.value.subnetwork,"ip_cidr_range","10.2.0.0/16")
+    region        = lookup(each.value.subnetwork, "region","us-central1")
+    network       = google_compute_network.vpc_network[each.value.vpc_key].id
+    secondary_ip_range {
+        range_name    = lookup(each.value.subnetwork.secondary_ip_range, "range_name","tf-test-secondary-range-update1")
+        ip_cidr_range = lookup(each.value.subnetwork.secondary_ip_range,"ip_cidr_range","192.168.10.0/24")
+    }
 }
 
