@@ -22,3 +22,37 @@ resource "google_compute_instance" "vm_instance" {
             }
         }
 }
+
+resource "google_compute_disk" "default" {
+    for_each = {for k in flatten([
+        for key, vm in var.vm_instances : [
+            for key_disk, disk in vm.attached_disk : {
+                vm_key      = key
+                disk_key    = key_disk
+                disk        = disk
+            }
+        ]
+    ]) : "${k.vm_key}_${k.disk_key}" => k}
+
+    name  = each.value.disk.name
+    type  =  lookup(each.value.disk, "type", "pd-ssd")
+    zone  = lookup(each.value.disk, "zone","eu-west8-a")
+    image = lookup(each.value.disk, "image", "debian-11-bullseye-v20220719")
+    #TODO : è corretto così?
+    labels = lookup(each.value, "labels", null)
+    physical_block_size_bytes = each.value.disk.physical_block_size_bytes
+}
+
+resource "google_compute_attached_disk" "default" {
+    for_each = {for k in flatten([
+        for key, vm in var.vm_instances : [
+            for key_disk, disk in vm.attached_disk : {
+                vm_key      = key
+                disk_key    = key_disk
+                disk        = disk
+            }
+        ]
+    ]) : "${k.vm_key}_${k.disk_key}" => k}
+    disk     = google_compute_disk.default["${each.key}"].id
+    instance = google_compute_instance.vm_instance["${each.value.vm_key}"].id
+}
