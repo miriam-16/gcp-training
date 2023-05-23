@@ -13,8 +13,6 @@ module "google_compute_network" {
 module "google_compute_instance" {
   source = "./modules/vm_instance_module"
   vm_instances    = var.vm_instances
-  vpc_networks    = var.vpc_networks
-
 }
 
 output "vm_instance"{

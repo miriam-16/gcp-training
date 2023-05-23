@@ -29,7 +29,7 @@ resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" 
 }
 
 output "subnet_id" {
-  description = "The ID of the subnet."
+    description = "The ID of the subnet."
     value       = google_compute_subnetwork.network-with-private-secondary-ip-ranges["vpc1_subnet1"].id
 }
 
