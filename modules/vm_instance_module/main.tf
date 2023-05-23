@@ -1,7 +1,7 @@
-module "vpc_module" {
+/*module "vpc_module" {
   source = "../vpc_module"
   vpc_networks = var.vpc_networks
-}
+}*/
 
 resource "google_compute_instance" "vm_instance" {
     for_each = var.vm_instances
@@ -17,9 +17,13 @@ resource "google_compute_instance" "vm_instance" {
         }
 
         network_interface {
-
-            network = "${module.vpc_module.vpc_network_name}"
-            access_config {
+            subnetwork = each.value.network_interface.subnetwork
+            network =  each.value.network_interface.network
+            subnetwork_project = each.value.network_interface.subnetwork_project
+            access_config{
+                nat_ip                  = lookup(each.value.network_interface.access_config, "nat_ip", null)
+                public_ptr_domain_name  = lookup(each.value.network_interface.access_config, "public_ptr_domain_name", null)
+                network_tier            = lookup(each.value.network_interface.access_config, "network_tier", null)
             }
         }
 }

@@ -11,9 +11,9 @@ resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" 
     for_each = { for k in flatten([
         for key, vpc in var.vpc_networks : [
             for key_sn, subnetwork in vpc.subnetworks : {
-                    vpc_key    = key
-                    sn_key     = key_sn
-                    subnetwork = subnetwork
+                vpc_key    = key
+                sn_key     = key_sn
+                subnetwork = subnetwork
             }
         ]
     ]) : "${k.vpc_key}_${k.sn_key}" => k} 
@@ -26,5 +26,10 @@ resource "google_compute_subnetwork" "network-with-private-secondary-ip-ranges" 
         range_name    = lookup(each.value.subnetwork.secondary_ip_range, "range_name","tf-test-secondary-range-update1")
         ip_cidr_range = lookup(each.value.subnetwork.secondary_ip_range,"ip_cidr_range","192.168.10.0/24")
     }
+}
+
+output "subnet_id" {
+  description = "The ID of the subnet."
+    value       = google_compute_subnetwork.network-with-private-secondary-ip-ranges["vpc1_subnet1"].id
 }
 

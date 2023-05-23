@@ -5,6 +5,5 @@ output "vpc_network"{
 
 output "vpc_network_name"{
     description = "Description of the vpc_network_name"
-    //value       = {for k, v in var.vpc_networks : k => v.name}
     value = var.vpc_networks["vpc1"].name
 }
