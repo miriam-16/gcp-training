@@ -13,6 +13,7 @@ module "google_compute_network" {
 module "google_compute_instance" {
   source = "./modules/vm_instance_module"
   vm_instances    = var.vm_instances
+  depends_on = [module.google_compute_network]
 }
 
 output "vm_instance"{
